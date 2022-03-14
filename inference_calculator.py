@@ -2,6 +2,10 @@
 # Stat-O-Sphere
 
 
+import distutils
+import distutils.util
+
+
 digits_rounded = 6
 
 # function to convert to superscript
@@ -28,36 +32,52 @@ def get_sub(x):
 from scipy.stats import norm
 from scipy.stats import t
 
-def norm_cdf_calc(mean, std_dev, lowerBound, upperBound):
+
+def norm_cdf_calc(mean, std_dev, lower_bound, upper_bound):
     mean = float(mean)
     std_dev = float(std_dev)
     prob = 0
-    if lowerBound == "NONE":
-        upperBound = float(upperBound)
-        prob = norm(loc = mean, scale = std_dev).cdf(upperBound)
-    elif upperBound == "NONE":
-        lowerBound = float(lowerBound)
-        prob = 1 - norm(loc = mean, scale = std_dev).cdf(lowerBound)
+    if lower_bound == "NONE":
+        upper_bound = float(upper_bound)
+        prob = norm(loc = mean, scale = std_dev).cdf(upper_bound)
+    elif upper_bound == "NONE":
+        lower_bound = float(lower_bound)
+        prob = 1 - norm(loc = mean, scale = std_dev).cdf(lower_bound)
     else:
-        upperBound = float(upperBound)
-        lowerBound = float(lowerBound)
-        prob = norm(loc = mean, scale = std_dev).cdf(upperBound) - norm(loc = mean, scale = std_dev).cdf(lowerBound)
+        upper_bound = float(upper_bound)
+        lower_bound = float(lower_bound)
+        prob = norm(loc = mean, scale = std_dev).cdf(upper_bound) - norm(loc = mean, scale = std_dev).cdf(lower_bound)
     return round(prob, digits_rounded)
 
-def t_cdf_calc(df, lowerBound, upperBound):
+def t_cdf_calc(df, lower_bound, upper_bound):
     df = float(df)
     prob = 0
-    if lowerBound == "NONE":
-        upperBound = float(upperBound)
-        prob = t.cdf(x = upperBound, df = df, loc = 0, scale = 1)
-    elif upperBound == "NONE":
-        lowerBound = float(lowerBound)
-        prob = 1 - t.cdf(x = lowerBound, df = df, loc = 0, scale = 1)
+    if lower_bound == "NONE":
+        upper_bound = float(upper_bound)
+        prob = t.cdf(x = upper_bound, df = df, loc = 0, scale = 1)
+    elif upper_bound == "NONE":
+        lower_bound = float(lower_bound)
+        prob = 1 - t.cdf(x = lower_bound, df = df, loc = 0, scale = 1)
     else:
-        lowerBound = float(lowerBound)
-        upperBound = float(upperBound)
-        prob = t.cdf(x = upperBound, df = df, loc = 0, scale = 1) - t.cdf(x = lowerBound, df = df, loc = 0, scale = 1)
+        lower_bound = float(lower_bound)
+        upper_bound = float(upper_bound)
+        prob = t.cdf(x = upper_bound, df = df, loc = 0, scale = 1) - t.cdf(x = lower_bound, df = df, loc = 0, scale = 1)
     return round(prob, digits_rounded)
+
+
+def checkNumSided(num_sided):
+    num_sided = num_sided.lower()
+    if "greater" in num_sided:
+        num_sided = "greater_one_sided"
+    elif "less" in num_sided:
+        num_sided = "less_one_sided"
+    else:
+        num_sided = "two_sided"
+    return num_sided
+
+def checkStandardDeviationType(std_dev_type):
+    print(std_dev_type.lower())
+    return std_dev_type.lower()
 
 
 def one_group_mean_testing(sample_mean, sample_size, pop_mean, num_sided, alpha_level, std_dev, std_dev_type, norm_dist, rand_samp):
@@ -90,15 +110,21 @@ def one_group_mean_testing(sample_mean, sample_size, pop_mean, num_sided, alpha_
     pop_mean = float(pop_mean)
     alpha_level = float(alpha_level)
     std_dev = float(std_dev)
-    norm_dist = bool(norm_dist)
-    rand_samp = bool(rand_samp)
+    norm_dist = bool(distutils.util.strtobool(norm_dist))
+    rand_samp = bool(distutils.util.strtobool(rand_samp))
+
+    # convert string variables
+    num_sided = checkNumSided(num_sided)
+    std_dev_type = checkStandardDeviationType(std_dev_type)
 
     # determine test type
     test_type = ""
     if std_dev_type == "population":
         test_type = "1-Sample Z-Test for Means"
+        print("reached here")
     else:
         test_type = "1-Sample T-Test for Means"
+        print("reached here 2")
 
     # verify conditions for test
     if norm_dist == False:
@@ -175,7 +201,6 @@ def one_group_mean_testing(sample_mean, sample_size, pop_mean, num_sided, alpha_
 
     return(final_doc)
 
-
 def two_group_mean_testing(sample_mean_1, sample_std_1, sample_size_1, sample_mean_2, sample_std_2, sample_size_2, diff_mean, num_sided, alpha_level, ind_dist, rand_samp):
 
     # General steps for 2-sample t-test for means:
@@ -199,8 +224,11 @@ def two_group_mean_testing(sample_mean_1, sample_std_1, sample_size_1, sample_me
     sample_size_2 = float(sample_size_2)
     diff_mean = float(diff_mean)
     alpha_level = float(alpha_level)
-    ind_dist = bool(ind_dist)
-    rand_samp = bool(rand_samp)
+    ind_dist = bool(distutils.util.strtobool(ind_dist))
+    rand_samp = bool(distutils.util.strtobool(rand_samp))
+
+    # convert string variables
+    num_sided = checkNumSided(num_sided)
 
     # determine test type
     test_type = "2-Sample T-Test for Difference of Means"
@@ -287,7 +315,6 @@ def two_group_mean_testing(sample_mean_1, sample_std_1, sample_size_1, sample_me
 
     return(final_doc)
 
-
 def one_group_prop_testing(sample_prop, sample_size, pop_prop, pop_size, num_sided, alpha_level, rand_samp):
 
     # General steps for 1-sample z-test for proportions:
@@ -307,7 +334,10 @@ def one_group_prop_testing(sample_prop, sample_size, pop_prop, pop_size, num_sid
     pop_prop = float(pop_prop)
     pop_size = float(pop_size)
     alpha_level = float(alpha_level)
-    rand_samp = bool(rand_samp)
+    rand_samp = bool(distutils.util.strtobool(rand_samp))
+
+    # convert string variables
+    num_sided = checkNumSided(num_sided)
 
     # determine test type
     test_type = "1-Sample Z-Test for Proportions"
