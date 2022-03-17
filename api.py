@@ -14,6 +14,12 @@ def verify_json(request):
 def process_json(request):
     return json.loads(request.data)
 
+@app.route('/test', methods=['GET'])
+def test():
+    return {
+        "message": "API IS RECIEVING REQUESTS"
+    }
+
 @app.route('/norm_dist_calc', methods=['POST'])
 def norm_dist_calc():
     data = request.get_json()
@@ -83,4 +89,5 @@ def one_group_prop_test():
 
 
 if __name__ == "__main__":
+    # app.run(debug = True, host = "0.0.0.0", port = 5000)
     app.run(debug = True)
